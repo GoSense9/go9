@@ -52,9 +52,64 @@ qemu-system-x86_64 \
   -serial "file:${LOG_FILE_ABS}" \
   -display none
 
+print_diagnostics() {
+  if [ -f "${PID_FILE}" ]; then
+    PID=$(cat "${PID_FILE}" 2>/dev/null || true)
+    if [ -n "${PID}" ] && kill -0 "${PID}" 2>/dev/null; then
+      echo "QEMU is still running with PID ${PID}." >&2
+    else
+      echo "QEMU is not running; the VM exited during boot." >&2
+    fi
+  else
+    echo "QEMU PID file is missing." >&2
+  fi
+
+  ssh -vvv ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >"${SSH_DEBUG_FILE}" 2>&1 || true
+
+  if [ -f "${LOG_FILE}" ]; then
+    echo "--- Last 160 lines of QEMU serial log ---" >&2
+    tail -n 160 "${LOG_FILE}" >&2 || true
+  fi
+
+  if [ -f "${SSH_DEBUG_FILE}" ]; then
+    echo "--- Last 100 lines of SSH diagnostics ---" >&2
+    tail -n 100 "${SSH_DEBUG_FILE}" >&2 || true
+  fi
+
+  echo "Full logs: ${LOG_FILE} and ${SSH_DEBUG_FILE}" >&2
+}
+
+printf 'Waiting for FreeBSD cloud-init'
+READY=0
+i=0
+while [ "${i}" -lt 180 ]; do
+  if [ -f "${LOG_FILE}" ] && grep -q 'GO9_CLOUD_INIT_READY' "${LOG_FILE}"; then
+    READY=1
+    break
+  fi
+
+  if [ -f "${PID_FILE}" ]; then
+    PID=$(cat "${PID_FILE}" 2>/dev/null || true)
+    if [ -z "${PID}" ] || ! kill -0 "${PID}" 2>/dev/null; then
+      break
+    fi
+  fi
+
+  i=$((i+1))
+  printf .
+  sleep 2
+done
+echo
+
+if [ "${READY}" -ne 1 ]; then
+  echo "timed out waiting for FreeBSD cloud-init readiness marker" >&2
+  print_diagnostics
+  exit 1
+fi
+
 printf 'Waiting for root SSH'
 i=0
-while [ "$i" -lt 120 ]; do
+while [ "${i}" -lt 12 ]; do
   if ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >/dev/null 2>&1; then
     echo
     echo "VM is reachable"
@@ -62,38 +117,10 @@ while [ "$i" -lt 120 ]; do
   fi
   i=$((i+1))
   printf .
-  sleep 2
+  sleep 5
 done
-
 echo
-echo "timed out waiting for root SSH" >&2
 
-if [ -f "${PID_FILE}" ]; then
-  PID=$(cat "${PID_FILE}" 2>/dev/null || true)
-  if [ -n "${PID}" ] && kill -0 "${PID}" 2>/dev/null; then
-    echo "QEMU is still running with PID ${PID}." >&2
-  else
-    echo "QEMU is not running; the VM exited during boot." >&2
-  fi
-else
-  echo "QEMU PID file is missing." >&2
-fi
-
-if ssh ${SSH_COMMON_OPTS} -p "${GO9_VM_SSH_PORT}" freebsd@127.0.0.1 'true' >/dev/null 2>&1; then
-  echo "The default freebsd user is reachable, but root SSH provisioning is not ready." >&2
-fi
-
-ssh -vvv ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >"${SSH_DEBUG_FILE}" 2>&1 || true
-
-if [ -f "${LOG_FILE}" ]; then
-  echo "--- Last 120 lines of QEMU serial log ---" >&2
-  tail -n 120 "${LOG_FILE}" >&2 || true
-fi
-
-if [ -f "${SSH_DEBUG_FILE}" ]; then
-  echo "--- Last 80 lines of SSH diagnostics ---" >&2
-  tail -n 80 "${SSH_DEBUG_FILE}" >&2 || true
-fi
-
-echo "Full logs: ${LOG_FILE} and ${SSH_DEBUG_FILE}" >&2
+echo "cloud-init completed, but root SSH did not become reachable" >&2
+print_diagnostics
 exit 1
