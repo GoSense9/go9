@@ -20,7 +20,9 @@ SSH_KEY="${GO9_VM_DIR}/id_ed25519"
 SEED_ISO="${GO9_VM_DIR}/seed.iso"
 PID_FILE="${GO9_VM_DIR}/qemu.pid"
 LOG_FILE="${GO9_VM_DIR}/qemu.log"
-SSH_COMMON_OPTS="-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=${GO9_VM_DIR}/known_hosts -o ConnectTimeout=5 -i ${SSH_KEY}"
+# This is an ephemeral VM exposed only on 127.0.0.1. Every new overlay gets
+# fresh SSH host keys, so persisting known_hosts would create false MITM errors.
+SSH_COMMON_OPTS="-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -i ${SSH_KEY}"
 SSH_OPTS="${SSH_COMMON_OPTS} -p ${GO9_VM_SSH_PORT}"
 SCP_OPTS="${SSH_COMMON_OPTS} -P ${GO9_VM_SSH_PORT}"
 VM_USER="root"
