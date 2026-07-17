@@ -9,7 +9,7 @@ mkdir -p "${GO9_VM_DIR}/seed"
 PUB=$(cat "${SSH_KEY}.pub")
 
 cat > "${GO9_VM_DIR}/seed/meta-data" <<META
-instance-id: go9-freebsd-dev-root-v2
+instance-id: go9-freebsd-dev-root-v3
 local-hostname: go9-freebsd-dev
 META
 
@@ -30,8 +30,9 @@ write_files:
 runcmd:
   - [ install, -d, -o, root, -g, wheel, -m, "0700", /root/.ssh ]
   - [ install, -o, root, -g, wheel, -m, "0600", /tmp/go9-root-authorized-key, /root/.ssh/authorized_keys ]
-  - [ sh, -c, "printf '\nPermitRootLogin prohibit-password\nPasswordAuthentication no\n' >> /etc/ssh/sshd_config" ]
+  - [ sh, -c, "printf '\nPermitRootLogin prohibit-password\nPasswordAuthentication no\nKbdInteractiveAuthentication no\nPerSourcePenalties no\n' >> /etc/ssh/sshd_config" ]
   - [ service, sshd, restart ]
+  - [ sh, -c, "touch /var/run/go9-cloud-init-ready; echo GO9_CLOUD_INIT_READY > /dev/console" ]
 USERDATA
 
 if command -v cloud-localds >/dev/null 2>&1; then
