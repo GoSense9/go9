@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/GoSense9/go9/internal/platform"
 	"net"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/GoSense9/go9/internal/platform"
 )
 
 const DefaultSocketPath = "/run/go9/control.sock"
@@ -41,12 +42,29 @@ func SocketPath(flag string) string {
 }
 func NewServer(sock string, p *platform.Provider) *Server { return &Server{sock: sock, provider: p} }
 func (s *Server) Listen() error {
-	if err := os.MkdirAll(filepath.Dir(s.sock), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(s.sock), 0700); err != nil {
 		return err
 	}
-	_ = os.Remove(s.sock)
+	if err := os.Chmod(filepath.Dir(s.sock), 0700); err != nil {
+		return err
+	}
+	if info, err := os.Lstat(s.sock); err == nil {
+		if info.Mode().Type() != os.ModeSocket {
+			return fmt.Errorf("refusing to replace non-socket control path %s", s.sock)
+		}
+		if err := os.Remove(s.sock); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
 	ln, err := net.Listen("unix", s.sock)
 	if err != nil {
+		return err
+	}
+	if err := os.Chmod(s.sock, 0600); err != nil {
+		_ = ln.Close()
+		_ = os.Remove(s.sock)
 		return err
 	}
 	s.ln = ln
@@ -108,7 +126,10 @@ func Call(ctx context.Context, sock, op string) (Response, error) {
 	if err := json.NewDecoder(bufio.NewReader(c)).Decode(&resp); err != nil {
 		return Response{}, err
 	}
-	if !resp.OK && resp.Error == "" {
+	if !resp.OK {
+		if resp.Error != "" {
+			return resp, errors.New(resp.Error)
+		}
 		return resp, errors.New("control request failed")
 	}
 	return resp, nil

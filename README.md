@@ -18,4 +18,14 @@ make vet
 make build-freebsd
 ```
 
-The control socket can be overridden with `--control-socket` or `GO9_CONTROL_SOCKET`.
+The control socket can be overridden with `--control-socket` or `GO9_CONTROL_SOCKET`. The web listener defaults to `127.0.0.1:8080`.
+
+## FreeBSD development VM
+
+On a CachyOS/Arch Linux host with QEMU/KVM prerequisites installed, run:
+
+```sh
+make freebsd-dev
+```
+
+This downloads and verifies the official FreeBSD 15.1-RELEASE amd64 BASIC-CLOUDINIT UFS qcow2 image, boots an immutable-base/overlay VM, installs `go9` as `/usr/local/sbin/go9`, enables the rc.d service, and runs integration checks.

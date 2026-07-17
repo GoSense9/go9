@@ -10,4 +10,7 @@ func TestStatus(t *testing.T) {
 	if st.Product != "GoSense9" || st.Component != "go9" || st.PID == 0 || st.OS == "" {
 		t.Fatalf("bad status: %+v", st)
 	}
+	if st.ProcessUptimeSeconds < 0 {
+		t.Fatalf("bad uptime: %+v", st)
+	}
 }

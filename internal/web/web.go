@@ -4,9 +4,11 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
-	"github.com/GoSense9/go9/internal/control"
 	"html/template"
 	"net/http"
+	"time"
+
+	"github.com/GoSense9/go9/internal/control"
 )
 
 //go:embed templates/* static/*
@@ -29,7 +31,14 @@ func (s *Server) Run(ctx context.Context) error {
 	mux.Handle("/static/", http.FileServer(http.FS(content)))
 	mux.HandleFunc("/", s.dashboard)
 	mux.HandleFunc("/system/status", s.status)
-	srv := &http.Server{Addr: s.addr, Handler: mux}
+	srv := &http.Server{
+		Addr:              s.addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 	go func() { <-ctx.Done(); _ = srv.Shutdown(context.Background()) }()
 	err := srv.ListenAndServe()
 	if err == http.ErrServerClosed {

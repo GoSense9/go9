@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/GoSense9/go9/internal/bootstrap"
 	"github.com/GoSense9/go9/internal/console"
 	"github.com/GoSense9/go9/internal/control"
 	"github.com/GoSense9/go9/internal/platform"
 	"github.com/GoSense9/go9/internal/supervisor"
 	"github.com/GoSense9/go9/internal/web"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -34,7 +35,14 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-		return supervisor.New(exe, []supervisor.Process{{Role: "control", Args: []string{"--control-socket", sock}, Policy: supervisor.RestartAlways}, {Role: "console", Args: []string{"--control-socket", sock}, Policy: supervisor.RestartOnFailure}, {Role: "web", Args: []string{"--control-socket", sock, "--web-addr", cfg.WebAddr}, Policy: supervisor.RestartOnFailure}}).Run(ctx)
+		processes := []supervisor.Process{
+			{Role: "control", Args: []string{"--control-socket", sock}, Policy: supervisor.RestartAlways},
+			{Role: "web", Args: []string{"--control-socket", sock, "--web-addr", cfg.WebAddr}, Policy: supervisor.RestartOnFailure},
+		}
+		if cfg.Console {
+			processes = append(processes, supervisor.Process{Role: "console", Args: []string{"--control-socket", sock}, Policy: supervisor.RestartOnFailure})
+		}
+		return supervisor.New(exe, processes).Run(ctx)
 	case bootstrap.RoleControl:
 		return control.NewServer(sock, platform.NewProvider()).Serve(ctx)
 	case bootstrap.RoleConsole:

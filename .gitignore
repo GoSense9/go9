@@ -3,3 +3,5 @@
 *.test
 coverage.out
 .DS_Store
+
+.freebsd-vm/
