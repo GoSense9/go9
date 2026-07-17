@@ -9,7 +9,7 @@ mkdir -p "${GO9_VM_DIR}/seed"
 PUB=$(cat "${SSH_KEY}.pub")
 
 cat > "${GO9_VM_DIR}/seed/meta-data" <<META
-instance-id: go9-freebsd-dev-root-v3
+instance-id: go9-freebsd-dev-root-v4
 local-hostname: go9-freebsd-dev
 META
 
@@ -22,17 +22,21 @@ ssh_authorized_keys:
 ssh_pwauth: false
 disable_root: false
 write_files:
-  - path: /tmp/go9-root-authorized-key
+  - path: /root/.ssh/authorized_keys
     owner: root:wheel
     permissions: '0600'
     content: |
       ${PUB}
+  - path: /etc/ssh/sshd_config.d/99-go9-dev.conf
+    owner: root:wheel
+    permissions: '0644'
+    content: |
+      PermitRootLogin prohibit-password
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PerSourcePenalties no
 runcmd:
-  - [ install, -d, -o, root, -g, wheel, -m, "0700", /root/.ssh ]
-  - [ install, -o, root, -g, wheel, -m, "0600", /tmp/go9-root-authorized-key, /root/.ssh/authorized_keys ]
-  - [ sh, -c, "printf '\nPermitRootLogin prohibit-password\nPasswordAuthentication no\nKbdInteractiveAuthentication no\nPerSourcePenalties no\n' >> /etc/ssh/sshd_config" ]
-  - [ service, sshd, restart ]
-  - [ sh, -c, "touch /var/run/go9-cloud-init-ready; echo GO9_CLOUD_INIT_READY > /dev/console" ]
+  - [ sh, -c, "set -eu; chown root:wheel /root/.ssh /root/.ssh/authorized_keys; chmod 0700 /root/.ssh; chmod 0600 /root/.ssh/authorized_keys; /usr/sbin/sshd -t; service sshd restart; touch /var/run/go9-cloud-init-ready; echo GO9_CLOUD_INIT_READY > /dev/console" ]
 USERDATA
 
 if command -v cloud-localds >/dev/null 2>&1; then
