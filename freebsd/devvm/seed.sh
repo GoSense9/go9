@@ -29,7 +29,7 @@ write_files:
     content: |
       permit nopass freebsd as root
 runcmd:
-  - [ sh, -c, "set -eu; test -x /usr/local/bin/doas; /usr/local/bin/doas -C /usr/local/etc/doas.conf freebsd /usr/bin/true | grep -q '^permit nopass$'; touch /var/run/go9-cloud-init-ready; echo GO9_CLOUD_INIT_READY > /dev/console" ]
+  - [ sh, -c, "set -eu; test -x /usr/local/bin/doas; /usr/bin/su -m freebsd -c '/usr/local/bin/doas -n /usr/bin/true'; touch /var/run/go9-cloud-init-ready; echo GO9_CLOUD_INIT_READY > /dev/console" ]
 USERDATA
 
 if command -v cloud-localds >/dev/null 2>&1; then
