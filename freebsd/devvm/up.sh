@@ -8,12 +8,54 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 "${ROOT}/freebsd/devvm/download.sh"
 "${ROOT}/freebsd/devvm/seed.sh"
 
+ssh_ready() {
+  ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >/dev/null 2>&1
+}
+
+privilege_ready() {
+  ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'test -x /usr/local/bin/doas && /usr/local/bin/doas -n /usr/bin/true' >/dev/null 2>&1
+}
+
+print_remote_diagnostics() {
+  ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" '
+    echo "--- FreeBSD VM diagnostics ---"
+    uname -a
+    echo "--- doas binary ---"
+    command -v doas || true
+    ls -l /usr/local/bin/doas 2>/dev/null || true
+    echo "--- doas package ---"
+    pkg info doas 2>/dev/null || true
+    echo "--- doas configuration ---"
+    ls -l /usr/local/etc/doas.conf 2>/dev/null || true
+    cat /usr/local/etc/doas.conf 2>/dev/null || true
+    echo "--- nuageinit messages ---"
+    grep -i nuageinit /var/log/messages 2>/dev/null | tail -n 80 || true
+  ' >&2 || true
+}
+
 if [ -f "${PID_FILE}" ]; then
   PID=$(cat "${PID_FILE}" 2>/dev/null || true)
   if [ -n "${PID}" ] && kill -0 "${PID}" 2>/dev/null; then
-    if ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >/dev/null 2>&1; then
-      echo "VM already running and reachable"
-      exit 0
+    if ssh_ready; then
+      if privilege_ready; then
+        echo "VM already running and ready"
+        exit 0
+      fi
+      echo "VM is running and SSH is reachable; waiting for nuageinit package setup"
+      i=0
+      while [ "${i}" -lt 60 ]; do
+        if privilege_ready; then
+          echo "VM privilege setup is ready"
+          exit 0
+        fi
+        i=$((i+1))
+        printf .
+        sleep 5
+      done
+      echo
+      echo "SSH works, but doas did not become ready." >&2
+      print_remote_diagnostics
+      exit 1
     fi
     echo "VM is running but does not accept the current project SSH key." >&2
     echo "Recreate the ephemeral VM with: make freebsd-vm-clean && make freebsd-dev" >&2
@@ -57,7 +99,7 @@ qemu-system-x86_64 \
   -serial "file:${LOG_FILE_ABS}" \
   -display none
 
-print_diagnostics() {
+print_boot_diagnostics() {
   if [ -f "${PID_FILE}" ]; then
     PID=$(cat "${PID_FILE}" 2>/dev/null || true)
     if [ -n "${PID}" ] && kill -0 "${PID}" 2>/dev/null; then
@@ -84,48 +126,40 @@ print_diagnostics() {
   echo "Full logs: ${LOG_FILE} and ${SSH_DEBUG_FILE}" >&2
 }
 
-printf 'Waiting for FreeBSD nuageinit'
-READY=0
+printf 'Waiting for freebsd SSH'
 i=0
-while [ "${i}" -lt 180 ]; do
-  if [ -f "${LOG_FILE}" ] && grep -q 'GO9_CLOUD_INIT_READY' "${LOG_FILE}"; then
-    READY=1
+while [ "${i}" -lt 72 ]; do
+  if ssh_ready; then
+    echo
+    echo "SSH is reachable"
     break
   fi
-
-  if [ -f "${PID_FILE}" ]; then
-    PID=$(cat "${PID_FILE}" 2>/dev/null || true)
-    if [ -z "${PID}" ] || ! kill -0 "${PID}" 2>/dev/null; then
-      break
-    fi
-  fi
-
   i=$((i+1))
   printf .
-  sleep 2
+  sleep 5
 done
-echo
 
-if [ "${READY}" -ne 1 ]; then
-  echo "timed out waiting for FreeBSD nuageinit readiness marker" >&2
-  print_diagnostics
+if ! ssh_ready; then
+  echo
+  echo "timed out waiting for freebsd SSH" >&2
+  print_boot_diagnostics
   exit 1
 fi
 
-printf 'Waiting for freebsd SSH'
+printf 'Waiting for nuageinit privilege setup'
 i=0
-while [ "${i}" -lt 12 ]; do
-  if ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >/dev/null 2>&1; then
+while [ "${i}" -lt 60 ]; do
+  if privilege_ready; then
     echo
-    echo "VM is reachable"
+    echo "VM is reachable and privilege setup is ready"
     exit 0
   fi
   i=$((i+1))
   printf .
   sleep 5
 done
-echo
 
-echo "nuageinit completed, but freebsd SSH did not become reachable" >&2
-print_diagnostics
+echo
+echo "SSH works, but doas did not become ready." >&2
+print_remote_diagnostics
 exit 1
