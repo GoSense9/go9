@@ -15,7 +15,7 @@ if [ -f "${PID_FILE}" ]; then
       echo "VM already running and reachable"
       exit 0
     fi
-    echo "VM is running but does not accept the current project root key." >&2
+    echo "VM is running but does not accept the current project SSH key." >&2
     echo "Recreate the ephemeral VM with: make freebsd-vm-clean && make freebsd-dev" >&2
     exit 1
   fi
@@ -84,7 +84,7 @@ print_diagnostics() {
   echo "Full logs: ${LOG_FILE} and ${SSH_DEBUG_FILE}" >&2
 }
 
-printf 'Waiting for FreeBSD cloud-init'
+printf 'Waiting for FreeBSD nuageinit'
 READY=0
 i=0
 while [ "${i}" -lt 180 ]; do
@@ -107,12 +107,12 @@ done
 echo
 
 if [ "${READY}" -ne 1 ]; then
-  echo "timed out waiting for FreeBSD cloud-init readiness marker" >&2
+  echo "timed out waiting for FreeBSD nuageinit readiness marker" >&2
   print_diagnostics
   exit 1
 fi
 
-printf 'Waiting for root SSH'
+printf 'Waiting for freebsd SSH'
 i=0
 while [ "${i}" -lt 12 ]; do
   if ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >/dev/null 2>&1; then
@@ -126,6 +126,6 @@ while [ "${i}" -lt 12 ]; do
 done
 echo
 
-echo "cloud-init completed, but root SSH did not become reachable" >&2
+echo "nuageinit completed, but freebsd SSH did not become reachable" >&2
 print_diagnostics
 exit 1
