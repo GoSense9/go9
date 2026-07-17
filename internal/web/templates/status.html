@@ -1,0 +1,1 @@
+<!doctype html><html><head><title>GoSense9 System Status</title><link rel="stylesheet" href="/static/style.css"></head><body><main><h1>System status</h1>{{if .Error}}<p class="error">{{.Error}}</p>{{else}}<dl>{{range $k,$v := .Status}}<dt>{{$k}}</dt><dd>{{$v}}</dd>{{end}}</dl>{{end}}<p><a href="/">Dashboard</a></p></main></body></html>
