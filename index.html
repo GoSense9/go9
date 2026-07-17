@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GoSense9 — Network Operating System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="poster" aria-label="GoSense9 infographic landing page">
+    <section class="hero">
+      <div class="mascot-wrap">
+        <svg class="bolt bolt-a" viewBox="0 0 55 100" aria-hidden="true"><path d="M29 3 5 42l22 3-9 52 33-64-25 1Z"/></svg>
+        <svg class="bolt bolt-b" viewBox="0 0 55 100" aria-hidden="true"><path d="M29 3 5 42l22 3-9 52 33-64-25 1Z"/></svg>
+        <img class="mascot" src="assets/gosense9-mascot.svg" alt="GoSense9 blue rabbit mascot" />
+      </div>
+      <div class="hero-copy">
+        <div class="title-row">
+          <h1>GoSense<span>9</span></h1>
+          <svg class="circuit" viewBox="0 0 250 160" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 52h70l28-28h70"/><path d="M52 88h58l24 25h82"/><path d="M9 119h92l24 24h78"/><path d="M143 55h85"/><path d="M174 25h55"/><path d="M168 84h54"/>
+            </g>
+            <g fill="white" stroke="currentColor" stroke-width="4"><circle cx="23" cy="52" r="6"/><circle cx="52" cy="88" r="6"/><circle cx="9" cy="119" r="6"/><circle cx="143" cy="55" r="6"/><circle cx="174" cy="25" r="6"/><circle cx="168" cy="84" r="6"/></g>
+          </svg>
+        </div>
+        <p class="subtitle">A FreeBSD-based network operating system<br>powered by Go, jails, WASM, and Plan 9 ideas</p>
+        <div class="statement"><img src="assets/badge-9.svg" alt="GoSense9 shield"><strong>GoSense9 is a modular network OS<br>for routers, gateways, edge appliances,<br>and clustered infrastructure.</strong></div>
+        <div class="chips">
+          <span><i class="freebsd"></i>FreeBSD<br>Kernel</span><span><i class="jails"></i>Jails</span><span><i class="go"></i>Go App<br>Store</span><span><i class="cube"></i>WASM</span><span><i class="p9">P9</i>P9 Cluster<br>Fabric</span><span><i class="net"></i>PXE/iPXE<br>Boot</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid top-grid">
+      <article class="card stack-card span-5"><h2><b>2</b>HOW THE SYSTEM IS CONCEIVED</h2><div class="stack">
+        <div class="navy">▦ Cluster orchestrator over P9 protocol</div><div class="purple">◇ WASM runtime + orchestrator</div><div class="blue">▣ Go App Store services</div><div class="teal">▥ Jails for isolation</div><div class="green">🛡 PF firewall / NAT / routing / VLANs / VPN</div><div class="orange">↯ FreeBSD Kernel + drivers + networking</div><div class="blue2"><img src="assets/badge-9.svg" alt="">Minimal GoSense9 Base System</div><div class="pale">▧ PXE / iPXE Network Boot</div><div class="dark">▤ Hardware / Bare Metal / VM</div>
+      </div></article>
+      <article class="card span-6"><h2><b>3</b>CORE FOUNDATION <img class="corner" src="assets/shield.svg" alt=""></h2><ul class="checks"><li>FreeBSD kernel for stability and performance</li><li>Minimal, secure, appliance-style base OS</li><li>Optimized for routing, firewalling, and edge services</li><li>Boot environments and snapshots ready for safe upgrades</li><li>Simple web UI + CLI + API driven management</li></ul></article>
+      <article class="card span-3"><h2><b>4</b>ISOLATION WITH JAILS</h2><div class="jail-row"><span>JAIL<br>01</span><span>JAIL<br>02</span><span>JAIL<br>03</span><span>JAIL<br>N</span></div><ul><li>Service isolation using FreeBSD jails</li><li>Dedicated network stacks / VNET-ready design</li><li>Safer app deployment than mixing everything in the base system</li><li>Easy rollback, upgrade, and service separation</li></ul></article>
+      <article class="card span-3"><h2><b>5</b>NETWORKING ENGINE</h2><img class="network" src="assets/network-engine.svg" alt="WAN routing diagram"><ul><li>Routing, NAT, firewalling, VLANs, DHCP, DNS, VPN</li><li>Multi-WAN and edge gateway scenarios</li><li>Designed for small appliances and larger deployments</li><li>Clear traffic control and policy management</li></ul></article>
+    </section>
+
+    <section class="card app-store"><h2><b>6</b>GO APP STORE</h2><div class="apps">
+      <div><img src="assets/app-caddy.svg" alt="Caddy"><strong>Caddy</strong><small>web server /<br>reverse proxy</small></div><div><img src="assets/app-traefik.svg" alt="Traefik"><strong>Traefik</strong><small>edge routing /<br>ingress</small></div><div><img src="assets/app-coredns.svg" alt="CoreDNS"><strong>CoreDNS</strong><small>DNS service</small></div><div><img src="assets/app-headscale.svg" alt="Headscale"><strong>Headscale</strong><small>private mesh<br>coordination</small></div><div><img src="assets/app-adguard.svg" alt="AdGuard Home"><strong>AdGuard Home</strong><small>DNS filtering</small></div><div><img src="assets/app-prometheus.svg" alt="Prometheus"><strong>Prometheus</strong><small>metrics<br>monitoring</small></div><div><img src="assets/app-minio.svg" alt="MinIO"><strong>MinIO</strong><small>object<br>storage</small></div><div><img src="assets/app-syncthing.svg" alt="Syncthing"><strong>Syncthing</strong><small>file sync</small></div><div><img src="assets/app-restic.svg" alt="Restic"><strong>Restic</strong><small>backup</small></div><div><img src="assets/app-victoria.svg" alt="VictoriaMetrics"><strong>VictoriaMetrics</strong><small>time-series<br>monitoring</small></div>
+    </div><p class="note">◇ All apps are packaged for easy install, upgrade, and isolation.</p></section>
+
+    <section class="grid lower-grid">
+      <article class="card span-5 wasm"><h2><b>7</b>WASM EVERYWHERE</h2><img src="assets/wasm-cube.svg" alt="WASM cube"><ul><li>Run lightweight sandboxed workloads</li><li>Portable application modules</li><li>Fast startup and efficient edge execution</li><li>Ideal for plugins, filters, automation, and microservices</li><li>Managed by a built-in WASM orchestrator</li></ul></article>
+      <article class="card span-6 fabric"><h2><b>8</b>P9 CLUSTER FABRIC</h2><img src="assets/cluster-fabric.svg" alt="P9 cluster fabric"><ul><li>Cluster-wide orchestration across multiple nodes</li><li>Plan 9 inspired service communication</li><li>P9 protocol for distributed control and resource access</li><li>Consistent service deployment across edge or lab clusters</li><li>Unified control plane for the whole system</li></ul></article>
+      <article class="card span-5 provision"><h2><b>9</b>PROVISION FAST</h2><div><span>▧<small>PXE / iPXE<br>network boot</small></span><span>🚀<small>Rapid reinstall<br>and zero-touch<br>provisioning</small></span><span>▤<small>Template-based<br>deployments</small></span><span>⚙<small>Ideal for<br>appliances, labs,<br>and scalable rollouts</small></span></div></article>
+      <article class="card span-6 why"><h2><b>10</b>WHY GOSENSE9?</h2><div><span>ϟ<small>Fast</small></span><span>⬢<small>Modular</small></span><span>🛡<small>Secure</small></span><span>☍<small>Cluster-ready</small></span><span>Go<small>Go-native<br>ecosystem</small></span><span>☁<small>Edge-<br>friendly</small></span><span>▣<small>Simple to<br>manage</small></span><span>▟<small>Built for<br>growth</small></span></div></article>
+    </section>
+
+    <footer><img src="assets/gosense9-head.svg" alt="GoSense9 mascot head"><p><strong>GoSense9</strong> — FreeBSD strength,<br><span>Go</span> flexibility, <span>Plan 9</span> inspired orchestration.</p></footer>
+  </main>
+</body>
+</html>
