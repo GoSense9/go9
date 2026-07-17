@@ -11,8 +11,13 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 if [ -f "${PID_FILE}" ]; then
   PID=$(cat "${PID_FILE}" 2>/dev/null || true)
   if [ -n "${PID}" ] && kill -0 "${PID}" 2>/dev/null; then
-    echo "VM already running"
-    exit 0
+    if ssh ${SSH_OPTS} "${VM_USER}@127.0.0.1" 'true' >/dev/null 2>&1; then
+      echo "VM already running and reachable"
+      exit 0
+    fi
+    echo "VM is running but does not accept the current project root key." >&2
+    echo "Recreate the ephemeral VM with: make freebsd-vm-clean && make freebsd-dev" >&2
+    exit 1
   fi
   rm -f "${PID_FILE}"
 fi
