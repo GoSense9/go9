@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+
 : "${GO9_FREEBSD_VERSION:=15.1-RELEASE}"
 : "${GO9_FREEBSD_ARCH:=amd64}"
 : "${GO9_VM_DIR:=.freebsd-vm}"
@@ -7,6 +8,7 @@ set -eu
 : "${GO9_VM_WEB_PORT:=8080}"
 : "${GO9_VM_MEMORY:=2048}"
 : "${GO9_VM_CPUS:=2}"
+
 IMAGE_BASENAME="FreeBSD-${GO9_FREEBSD_VERSION}-${GO9_FREEBSD_ARCH}-BASIC-CLOUDINIT-ufs.qcow2"
 ARCHIVE_BASENAME="${IMAGE_BASENAME}.xz"
 BASE_URL="https://download.freebsd.org/releases/VM-IMAGES/${GO9_FREEBSD_VERSION}/${GO9_FREEBSD_ARCH}/Latest"
@@ -18,7 +20,7 @@ SSH_KEY="${GO9_VM_DIR}/id_ed25519"
 SEED_ISO="${GO9_VM_DIR}/seed.iso"
 PID_FILE="${GO9_VM_DIR}/qemu.pid"
 LOG_FILE="${GO9_VM_DIR}/qemu.log"
-SSH_COMMON_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=${GO9_VM_DIR}/known_hosts -o ConnectTimeout=5 -i ${SSH_KEY}"
+SSH_COMMON_OPTS="-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=${GO9_VM_DIR}/known_hosts -o ConnectTimeout=5 -i ${SSH_KEY}"
 SSH_OPTS="${SSH_COMMON_OPTS} -p ${GO9_VM_SSH_PORT}"
 SCP_OPTS="${SSH_COMMON_OPTS} -P ${GO9_VM_SSH_PORT}"
 VM_USER="root"
