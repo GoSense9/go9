@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# PROVIDE: go9
+# REQUIRE: NETWORKING
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="go9"
+rcvar="go9_enable"
+command="/usr/sbin/daemon"
+procname="/usr/local/sbin/go9"
+pidfile="/var/run/${name}.pid"
+
+load_rc_config "$name"
+: ${go9_enable:="NO"}
+: ${go9_socket:="/run/go9/control.sock"}
+: ${go9_web_addr:="0.0.0.0:8080"}
+command_args="-p ${pidfile} -f ${procname} --role=init --console=false --control-socket ${go9_socket} --web-addr=${go9_web_addr}"
+
+run_rc_command "$1"

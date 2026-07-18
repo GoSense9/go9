@@ -1,0 +1,28 @@
+#!/bin/sh
+set -eu
+
+: "${GO9_FREEBSD_VERSION:=15.1-RELEASE}"
+: "${GO9_FREEBSD_ARCH:=amd64}"
+: "${GO9_VM_DIR:=.freebsd-vm}"
+: "${GO9_VM_SSH_PORT:=2222}"
+: "${GO9_VM_WEB_PORT:=8080}"
+: "${GO9_VM_MEMORY:=2048}"
+: "${GO9_VM_CPUS:=2}"
+
+IMAGE_BASENAME="FreeBSD-${GO9_FREEBSD_VERSION}-${GO9_FREEBSD_ARCH}-BASIC-CLOUDINIT-ufs.qcow2"
+ARCHIVE_BASENAME="${IMAGE_BASENAME}.xz"
+BASE_URL="https://download.freebsd.org/releases/VM-IMAGES/${GO9_FREEBSD_VERSION}/${GO9_FREEBSD_ARCH}/Latest"
+BASE_ARCHIVE="${GO9_VM_DIR}/${ARCHIVE_BASENAME}"
+BASE_IMAGE="${GO9_VM_DIR}/${IMAGE_BASENAME}"
+OVERLAY_IMAGE="${GO9_VM_DIR}/go9-${GO9_FREEBSD_VERSION}-${GO9_FREEBSD_ARCH}.overlay.qcow2"
+CHECKSUM_FILE="${GO9_VM_DIR}/CHECKSUM.SHA256"
+SSH_KEY="${GO9_VM_DIR}/id_ed25519"
+SEED_ISO="${GO9_VM_DIR}/seed.iso"
+PID_FILE="${GO9_VM_DIR}/qemu.pid"
+LOG_FILE="${GO9_VM_DIR}/qemu.log"
+# This is an ephemeral VM exposed only on 127.0.0.1. Every new overlay gets
+# fresh SSH host keys, so persisting known_hosts would create false MITM errors.
+SSH_COMMON_OPTS="-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -i ${SSH_KEY}"
+SSH_OPTS="${SSH_COMMON_OPTS} -p ${GO9_VM_SSH_PORT}"
+SCP_OPTS="${SSH_COMMON_OPTS} -P ${GO9_VM_SSH_PORT}"
+VM_USER="freebsd"
