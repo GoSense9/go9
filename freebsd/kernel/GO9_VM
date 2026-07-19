@@ -1,0 +1,172 @@
+#
+# GO9_VM -- GoSense9 development kernel for the QEMU/KVM amd64 VM.
+#
+# This profile deliberately derives from the matching FreeBSD GENERIC kernel.
+# It removes hardware families that the controlled development VM cannot use,
+# keeps recovery-friendly console/USB support, and compiles the networking
+# primitives required for later jail/VNET work directly into the kernel.
+#
+
+include GENERIC
+ident GO9_VM
+
+# Production-style build output for this profile. The GENERIC fallback kernel
+# remains installed separately and is never overwritten by the M1 workflow.
+nomakeoptions DEBUG
+nomakeoptions WITH_CTF
+
+# The VM uses ULE only. Enable RACCT/RCTL at boot instead of leaving the
+# compiled feature disabled behind the kern.racct.enable loader tunable.
+nooptions SCHED_4BSD
+nooptions RACCT_DEFAULT_TO_DISABLED
+
+# Build only the OpenZFS module alongside this kernel. PF, bridge and epair are
+# compiled in below. UFS remains the development VM root filesystem.
+makeoptions MODULES_OVERRIDE="opensolaris zfs"
+
+# Jail/VNET networking and firewall primitives required by GoSense9.
+device if_bridge
+device epair
+device pf
+device pflog
+device pfsync
+
+# Floppy, CardBus and parallel-port hardware are not present in QEMU/KVM.
+nodevice fdc
+nodevice cbb
+nodevice cardbus
+nodevice ppc
+nodevice ppbus
+nodevice lpt
+nodevice ppi
+nodevice puc
+
+# Physical SCSI, SAS, Fibre Channel and RAID controllers are not exposed by
+# the controlled VM. Keep CAM, ATA, da, cd and pass for the NoCloud seed CD and
+# recovery workflows.
+nodevice ahc
+nodevice ahd
+nodevice hptiop
+nodevice isp
+nodevice mpt
+nodevice mps
+nodevice mpr
+nodevice mpi3mr
+nodevice sym
+nodevice isci
+nodevice ocs_fc
+nodevice pvscsi
+nodevice ch
+nodevice sa
+nodevice ses
+nodevice arcmsr
+nodevice ciss
+nodevice ips
+nodevice smartpqi
+nodevice tws
+nodevice aac
+nodevice aacp
+nodevice aacraid
+nodevice ida
+nodevice mfi
+nodevice mlx
+nodevice mrsas
+nodevice nvme
+nodevice nvd
+nodevice ufshci
+nodevice vmd
+
+# The development VM uses vtnet exclusively. Remove physical and alternate
+# hypervisor NIC families while retaining loopback, Ethernet, VLAN, BPF,
+# tuntap and VirtIO networking.
+nodevice iflib
+nodevice em
+nodevice igc
+nodevice ix
+nodevice ixv
+nodevice ixl
+nodevice iavf
+nodevice ice
+nodevice vmx
+nodevice axp
+nodevice bxe
+nodevice le
+nodevice ti
+nodevice mlx5
+nodevice mlxfw
+nodevice mlx5en
+nodevice miibus
+nodevice ae
+nodevice age
+nodevice alc
+nodevice ale
+nodevice bce
+nodevice bfe
+nodevice bge
+nodevice cas
+nodevice dc
+nodevice et
+nodevice fxp
+nodevice gem
+nodevice jme
+nodevice lge
+nodevice msk
+nodevice nfe
+nodevice nge
+nodevice re
+nodevice rl
+nodevice sge
+nodevice sis
+nodevice sk
+nodevice ste
+nodevice stge
+nodevice vge
+nodevice vr
+nodevice xl
+
+# Wireless networking is not part of the server/appliance VM profile.
+nodevice wlan
+nooptions IEEE80211_DEBUG
+nooptions IEEE80211_SUPPORT_MESH
+nodevice wlan_wep
+nodevice wlan_tkip
+nodevice wlan_ccmp
+nodevice wlan_gcmp
+nodevice wlan_amrr
+nodevice ath
+nodevice ath_hal
+nooptions AH_AR5416_INTERRUPT_MITIGATION
+nodevice ath_rate_sample
+nodevice ipw
+nodevice iwi
+nodevice iwn
+nodevice malo
+nodevice mwl
+nodevice ral
+nodevice wpi
+
+# Audio and removable MMC/SD hardware are outside the VM profile.
+nodevice sound
+nodevice snd_cmi
+nodevice snd_csa
+nodevice snd_emu10kx
+nodevice snd_es137x
+nodevice snd_hda
+nodevice snd_ich
+nodevice snd_via8233
+nodevice mmc
+nodevice mmcsd
+nodevice sdhci
+
+# Keep only the KVM/VirtIO virtualization path used by the development VM.
+nodevice hyperv
+nooptions XENHVM
+nodevice xenefi
+nodevice xenpci
+nodevice xentimer
+
+# Netmap and desktop input event interfaces are not required by M1.
+nodevice netmap
+nooptions EVDEV_SUPPORT
+nodevice evdev
+nodevice uinput
