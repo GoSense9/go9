@@ -66,6 +66,7 @@ fi
 
 BASE_IMAGE_ABS=$(readlink -f "${BASE_IMAGE}")
 OVERLAY_IMAGE_ABS="${ROOT}/${OVERLAY_IMAGE}"
+KERNEL_BUILD_IMAGE_ABS="${ROOT}/${KERNEL_BUILD_IMAGE}"
 SEED_ISO_ABS="${ROOT}/${SEED_ISO}"
 LOG_FILE_ABS="${ROOT}/${LOG_FILE}"
 PID_FILE_ABS="${ROOT}/${PID_FILE}"
@@ -78,6 +79,18 @@ fi
 
 if [ ! -f "${OVERLAY_IMAGE}" ]; then
   qemu-img create -f qcow2 -F qcow2 -b "${BASE_IMAGE_ABS}" "${OVERLAY_IMAGE_ABS}"
+fi
+
+# Kernel source and build objects live on a separate persistent sparse disk.
+# Ordinary freebsd-vm-clean intentionally preserves this image so a long
+# kernel build is not lost with the disposable system overlay.
+if [ -f "${KERNEL_BUILD_IMAGE}" ]; then
+  if ! qemu-img info "${KERNEL_BUILD_IMAGE}" >/dev/null 2>&1; then
+    echo "Kernel build disk is invalid; refusing to delete it automatically: ${KERNEL_BUILD_IMAGE}" >&2
+    exit 1
+  fi
+else
+  qemu-img create -f qcow2 "${KERNEL_BUILD_IMAGE_ABS}" "${GO9_KERNEL_BUILD_DISK_SIZE}"
 fi
 
 ACCEL="tcg"
@@ -93,6 +106,8 @@ qemu-system-x86_64 \
   -smp "${GO9_VM_CPUS}" \
   -machine accel="${ACCEL}" \
   -drive "file=${OVERLAY_IMAGE_ABS},if=virtio,format=qcow2" \
+  -drive "file=${KERNEL_BUILD_IMAGE_ABS},if=none,id=go9kernelbuild,format=qcow2" \
+  -device "virtio-blk-pci,drive=go9kernelbuild,serial=GO9KERNELBUILD" \
   -drive "file=${SEED_ISO_ABS},if=virtio,media=cdrom,readonly=on" \
   -netdev "user,id=net0,hostfwd=tcp:127.0.0.1:${GO9_VM_SSH_PORT}-:22,hostfwd=tcp:127.0.0.1:${GO9_VM_WEB_PORT}-:8080" \
   -device virtio-net-pci,netdev=net0 \
