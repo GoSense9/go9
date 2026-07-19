@@ -14,3 +14,5 @@ jobs:
       - run: go vet ./...
       - run: go build ./cmd/go9
       - run: CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build ./cmd/go9
+      - name: Validate FreeBSD shell scripts
+        run: find freebsd -type f -name '*.sh' -exec sh -n {} \;
